@@ -1,0 +1,19 @@
+{
+  "name": "karaoke-karibu",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "client": "npm --prefix client start",
+    "server": "npm --prefix server start",
+    "dev": "concurrently \"npm run client\" \"npm run server\"",
+    "build": "npm --prefix client run build && npm --prefix server run build",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "dependencies": {
+    "concurrently": "^6.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^7.0.0",
+    "prettier": "^2.0.0"
+  }
+}
