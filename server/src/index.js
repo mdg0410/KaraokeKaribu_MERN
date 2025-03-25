@@ -10,8 +10,6 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(express.json());
 
-console.log(process.env.MONGO_URI);
-
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log('MongoDB connected'))
