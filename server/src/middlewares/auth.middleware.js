@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const redisService = require('../services/redis.service');
+const { ApiError } = require('./error.middleware');
 
 /**
  * Middleware para verificar el token JWT
@@ -14,20 +15,14 @@ exports.protect = async (req, res, next) => {
 
   // Verificar si el token existe
   if (!token) {
-    return res.status(401).json({
-      success: false,
-      message: 'No está autorizado para acceder a este recurso'
-    });
+    return next(new ApiError('No está autorizado para acceder a este recurso', 401));
   }
 
   try {
     // Verificar si el token está en la blacklist
     const isBlacklisted = await redisService.isBlacklisted(token);
     if (isBlacklisted) {
-      return res.status(401).json({
-        success: false,
-        message: 'Token revocado, por favor inicie sesión nuevamente'
-      });
+      return next(new ApiError('Token revocado, por favor inicie sesión nuevamente', 401));
     }
 
     // Verificar el token
@@ -37,10 +32,10 @@ exports.protect = async (req, res, next) => {
     req.user = decoded;
     next();
   } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: 'No está autorizado para acceder a este recurso'
-    });
+    if (error.name === 'TokenExpiredError') {
+      return next(new ApiError('Token expirado, por favor inicie sesión nuevamente', 401));
+    }
+    return next(new ApiError('No está autorizado para acceder a este recurso', 401));
   }
 };
 
@@ -49,19 +44,27 @@ exports.protect = async (req, res, next) => {
  */
 exports.authorize = (...roles) => {
   return (req, res, next) => {
-    if (!req.user || !req.user.roles) {
-      return res.status(403).json({
-        success: false,
-        message: 'No tiene permisos para realizar esta acción'
-      });
+    if (!req.user) {
+      return next(new ApiError('No está autenticado', 401));
     }
 
-    const hasRole = req.user.roles.some(role => roles.includes(role));
+    // Soporte tanto para roles como string único o como array
+    const userRoles = Array.isArray(req.user.roles) 
+      ? req.user.roles 
+      : req.user.role 
+        ? [req.user.role] 
+        : [];
+    
+    // Verificar si el usuario tiene al menos uno de los roles requeridos
+    const hasRole = userRoles.some(role => roles.includes(role));
+    
     if (!hasRole) {
-      return res.status(403).json({
-        success: false,
-        message: 'No tiene permisos para realizar esta acción'
-      });
+      return next(
+        new ApiError(
+          `Rol ${userRoles.join(', ')} no autorizado para acceder a este recurso`,
+          403
+        )
+      );
     }
 
     next();
