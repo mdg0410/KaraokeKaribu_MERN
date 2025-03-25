@@ -184,6 +184,19 @@ const generateToken = (user) => {
     throw new Error('Error de configuración del servidor: JWT_SECRET no definido');
   }
 
+  // Asegurarse de que la expiración del token tenga un valor razonable
+  // Si JWT_EXPIRE no está definido o es mayor a 30 días, usar 30 días como máximo
+  let expiresIn = process.env.JWT_EXPIRE || '30d';
+  
+  // Si el valor es un número seguido de 'd' (días), verificar que no exceda los 30 días
+  if (typeof expiresIn === 'string' && expiresIn.endsWith('d')) {
+    const days = parseInt(expiresIn.slice(0, -1));
+    if (days > 30) {
+      console.warn('JWT_EXPIRE mayor a 30 días, limitando a 30 días');
+      expiresIn = '30d';
+    }
+  }
+
   return jwt.sign(
     { 
       id: user._id,
@@ -192,8 +205,6 @@ const generateToken = (user) => {
       roles: user.roles
     },
     process.env.JWT_SECRET,
-    { 
-      expiresIn: process.env.JWT_EXPIRE || '30d'
-    }
+    { expiresIn }
   );
 };

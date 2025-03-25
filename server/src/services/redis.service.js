@@ -6,6 +6,7 @@ class RedisService {
     this.isConnected = false;
     this.useMemoryFallback = false;
     this.memoryBlacklist = new Map(); // Fallback en memoria si Redis no está disponible
+    this.MAX_TIMEOUT = 2147483647; // Máximo valor seguro para setTimeout (aproximadamente 24.8 días)
   }
 
   async connect() {
@@ -50,10 +51,19 @@ class RedisService {
         const expiryTime = Date.now() + (expiryInSeconds * 1000);
         this.memoryBlacklist.set(token, expiryTime);
         
-        // Configurar un timeout para eliminar el token de la blacklist cuando expire
-        setTimeout(() => {
-          this.memoryBlacklist.delete(token);
-        }, expiryInSeconds * 1000);
+        // Limitar el tiempo de timeout para evitar desbordamiento
+        const timeoutMs = Math.min(expiryInSeconds * 1000, this.MAX_TIMEOUT);
+        
+        // Si el timeout es igual al máximo permitido, configurar limpiezas periódicas
+        if (timeoutMs === this.MAX_TIMEOUT) {
+          console.log(`Token expira después del máximo timeout, se programarán limpiezas periódicas.`);
+          // No hacemos nada específico aquí, ya que la validación en isBlacklisted verificará la expiración
+        } else {
+          // Configurar un timeout para eliminar el token de la blacklist cuando expire
+          setTimeout(() => {
+            this.memoryBlacklist.delete(token);
+          }, timeoutMs);
+        }
         
         return true;
       }
