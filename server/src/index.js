@@ -3,6 +3,9 @@ const dotenv = require('dotenv');
 const path = require('path');
 const connectDB = require('./config/database');
 const redisService = require('./services/redis.service');
+const { errorHandler } = require('./middlewares/error.middleware');
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsDoc = require('swagger-jsdoc');
 
 // Cargar variables de entorno
 const result = dotenv.config();
@@ -16,14 +19,55 @@ if (!process.env.JWT_SECRET) {
   // En producción, podrías querer detener el servidor aquí con process.exit(1)
 }
 
+// Definir PORT antes de usarlo en la configuración de Swagger
+const PORT = process.env.PORT || 5000;
+
 // Importar rutas
 const authRoutes = require('./api/routes/auth.routes');
+const orderRoutes = require('./api/routes/order.routes');
+const tableRoutes = require('./api/routes/table.routes');
+const songRoutes = require('./api/routes/song.routes');
+const productRoutes = require('./api/routes/product.routes');
+
+// Configuración de Swagger
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Karaoke Karibu API',
+      version: '1.0.0',
+      description: 'API RESTful para la aplicación Karaoke Karibu',
+      contact: {
+        name: 'Equipo de Desarrollo',
+        email: 'info@karaokekaribu.com'
+      }
+    },
+    servers: [
+      {
+        url: `http://localhost:${PORT}`,
+        description: 'Servidor de desarrollo'
+      }
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT'
+        }
+      }
+    }
+  },
+  apis: ['./src/api/routes/*.js', './src/api/routes/api.docs.js']
+};
+
+const swaggerDocs = swaggerJsDoc(swaggerOptions);
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(express.json());
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Inicializar servicios
 const initServices = async () => {
@@ -51,6 +95,19 @@ const initServices = async () => {
 
 // Rutas API
 app.use('/api/auth', authRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/tables', tableRoutes);
+app.use('/api/songs', songRoutes);
+app.use('/api/products', productRoutes);
+
+// Añadir la ruta de health check (sin autenticación)
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    message: 'El servidor está funcionando correctamente',
+    timestamp: new Date().toISOString()
+  });
+});
 
 // Ruta principal
 app.get('/', (req, res) => {
@@ -65,15 +122,8 @@ app.use((req, res) => {
   });
 });
 
-// Middleware para manejar errores
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
-    success: false,
-    message: 'Error del servidor',
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined
-  });
-});
+// Middleware centralizado para manejo de errores
+app.use(errorHandler);
 
 // Iniciar servicios
 initServices();
