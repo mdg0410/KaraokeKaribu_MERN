@@ -1,70 +1,85 @@
 const jwt = require('jsonwebtoken');
-const redisService = require('../services/redis.service');
-const { ApiError } = require('./error.middleware');
+const redisManager = require('../utils/redisManager');
 
 /**
- * Middleware para verificar el token JWT
+ * Middleware para proteger rutas que requieren autenticación
  */
 exports.protect = async (req, res, next) => {
-  let token;
-
-  // Verificar si el token está en los headers
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    token = req.headers.authorization.split(' ')[1];
-  }
-
-  // Verificar si el token existe
-  if (!token) {
-    return next(new ApiError('No está autorizado para acceder a este recurso', 401));
-  }
-
   try {
-    // Verificar si el token está en la blacklist
-    const isBlacklisted = await redisService.isBlacklisted(token);
+    // Verificar que exista un token
+    let token;
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: 'Acceso no autorizado, token no proporcionado'
+      });
+    }
+
+    // Verificar si el token está en la lista negra (fue invalidado)
+    const isBlacklisted = await redisManager.isTokenBlacklisted(token);
     if (isBlacklisted) {
-      return next(new ApiError('Token revocado, por favor inicie sesión nuevamente', 401));
+      return res.status(401).json({
+        success: false,
+        message: 'Token inválido o caducado'
+      });
     }
 
     // Verificar el token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Añadir el usuario decodificado al request
+    // Agregar el usuario al objeto de solicitud
     req.user = decoded;
+    
     next();
   } catch (error) {
-    if (error.name === 'TokenExpiredError') {
-      return next(new ApiError('Token expirado, por favor inicie sesión nuevamente', 401));
+    console.error('Error en middleware de autenticación:', error);
+    
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Token inválido'
+      });
     }
-    return next(new ApiError('No está autorizado para acceder a este recurso', 401));
+    
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Token expirado'
+      });
+    }
+    
+    res.status(500).json({
+      success: false,
+      message: 'Error del servidor'
+    });
   }
 };
 
 /**
- * Middleware para verificar roles
+ * Middleware para verificar roles de usuario
+ * @param {...string} roles - Roles permitidos
  */
 exports.authorize = (...roles) => {
   return (req, res, next) => {
-    if (!req.user) {
-      return next(new ApiError('No está autenticado', 401));
+    if (!req.user || !req.user.roles) {
+      return res.status(403).json({
+        success: false,
+        message: 'Prohibido: no tiene permisos para acceder a este recurso'
+      });
     }
 
-    // Soporte tanto para roles como string único o como array
-    const userRoles = Array.isArray(req.user.roles) 
-      ? req.user.roles 
-      : req.user.role 
-        ? [req.user.role] 
-        : [];
-    
     // Verificar si el usuario tiene al menos uno de los roles requeridos
-    const hasRole = userRoles.some(role => roles.includes(role));
+    const hasRole = req.user.roles.some(role => roles.includes(role));
     
     if (!hasRole) {
-      return next(
-        new ApiError(
-          `Rol ${userRoles.join(', ')} no autorizado para acceder a este recurso`,
-          403
-        )
-      );
+      return res.status(403).json({
+        success: false,
+        message: 'Prohibido: rol insuficiente para acceder a este recurso'
+      });
     }
 
     next();

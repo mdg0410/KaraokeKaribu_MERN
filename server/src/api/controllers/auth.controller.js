@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../../models/User');
-const redisService = require('../../services/redis.service');
+const redisManager = require('../../utils/redisManager');
 
 /**
  * Registrar un nuevo usuario
@@ -126,7 +126,7 @@ exports.logout = async (req, res) => {
     const expiryTime = decoded.exp - Math.floor(Date.now() / 1000);
     
     // Añadir el token a la blacklist
-    await redisService.addToBlacklist(token, expiryTime > 0 ? expiryTime : 3600);
+    await redisManager.addToBlacklist(token, expiryTime > 0 ? expiryTime : 3600);
 
     res.json({
       success: true,

@@ -7,10 +7,7 @@
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "test": "echo \"No tests specified\" && exit 0",
-    "import-csv": "node src/scripts/import-csv.js",
-    "search": "node src/scripts/test-search.js",
-    "diagnose-search": "node src/scripts/diagnose-search.js",
-    "reindex-songs": "node src/scripts/reindex-songs.js"
+    "import-csv": "node src/scripts/import-csv.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -21,12 +18,13 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.5.0",
     "redis": "^4.0.0",
+    "socket.io": "^4.8.1",
     "swagger-jsdoc": "^6.2.5",
     "swagger-ui-express": "^4.6.3"
   },
   "devDependencies": {
     "nodemon": "^2.0.7"
   },
-  "author": "Your Name",
+  "author": "Steven",
   "license": "MIT"
 }

@@ -2,10 +2,12 @@ const express = require('express');
 const dotenv = require('dotenv');
 const path = require('path');
 const connectDB = require('./config/database');
-const redisService = require('./services/redis.service');
+const redisManager = require('./utils/redisManager');
 const { errorHandler } = require('./middlewares/error.middleware');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsDoc = require('swagger-jsdoc');
+const http = require('http');
+const socketManager = require('./utils/socketManager');
 
 // Cargar variables de entorno
 const result = dotenv.config();
@@ -69,23 +71,24 @@ const app = express();
 app.use(express.json());
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
+// Crear servidor HTTP
+const server = http.createServer(app);
+
+// Inicializar Socket.IO
+socketManager.init(server);
+
 // Inicializar servicios
 const initServices = async () => {
   try {
     // Conectar a MongoDB
     await connectDB();
     
-    // Conectar a Redis o usar fallback en memoria
-    // Si falla, no interrumpirá el inicio de la aplicación
-    try {
-      await redisService.connect();
-    } catch (error) {
-      console.warn('Redis no disponible, usando implementación en memoria:', error.message);
-    }
+    // Inicializar Redis (con manejo de errores interno)
+    await redisManager.init();
     
     // Iniciar el servidor
-    app.listen(PORT, () => {
-      console.log(`Servidor iniciado en http://localhost:${PORT}`);
+    server.listen(PORT, () => {
+      console.log(`Servidor en ejecución en puerto ${PORT}`);
     });
   } catch (err) {
     console.error('Error crítico de inicialización:', err);
