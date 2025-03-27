@@ -6,10 +6,15 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "test": "echo \"No tests specified\" && exit 0"
+    "test": "echo \"No tests specified\" && exit 0",
+    "import-csv": "node src/scripts/import-csv.js",
+    "search": "node src/scripts/test-search.js",
+    "diagnose-search": "node src/scripts/diagnose-search.js",
+    "reindex-songs": "node src/scripts/reindex-songs.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "csv-parse": "^5.6.0",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "express-validator": "^6.14.0",

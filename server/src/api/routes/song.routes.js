@@ -2,6 +2,7 @@ const express = require('express');
 const { body } = require('express-validator');
 const router = express.Router();
 const songController = require('../controllers/song.controller');
+const csvController = require('../controllers/csv.controller');
 const { protect, authorize } = require('../../middlewares/auth.middleware');
 
 // Middleware de validación para crear/actualizar canciones
@@ -80,6 +81,19 @@ router.delete(
   protect,
   authorize('admin'),
   songController.deleteSong
+);
+
+// Ruta para importar canciones desde CSV
+router.post(
+  '/import-csv',
+  protect,
+  authorize('admin'),
+  [
+    body('filePath')
+      .notEmpty().withMessage('La ruta del archivo CSV es requerida')
+      .isString().withMessage('La ruta debe ser un texto')
+  ],
+  csvController.importSongsFromCSV
 );
 
 module.exports = router;

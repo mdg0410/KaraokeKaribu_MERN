@@ -31,7 +31,8 @@ const SongSchema = new mongoose.Schema({
   },
   language: {
     type: String,
-    default: 'español'
+    default: 'spanish',
+    enum: ['spanish', 'english', 'portuguese', 'french', 'italian', 'other']
   },
   year: {
     type: Number,
