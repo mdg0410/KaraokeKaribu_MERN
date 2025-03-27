@@ -1,42 +1,42 @@
 const mongoose = require('mongoose');
 
 const SongSchema = new mongoose.Schema({
+  code: {
+    type: Number,
+    required: true,
+    unique: true,
+    min: 1
+  },
   title: {
     type: String,
-    required: [true, 'El título de la canción es obligatorio'],
-    trim: true,
-    index: true
+    required: true,
+    trim: true
   },
   artist: {
     type: String,
-    required: [true, 'El artista es obligatorio'],
-    trim: true,
-    index: true
+    required: true,
+    trim: true
   },
-  code: {
-    type: Number,
-    required: [true, 'El código de la canción es obligatorio'],
-    unique: true,
-    min: [1, 'El código debe ser mayor o igual a 1'],
-    max: [8000, 'El código debe ser menor o igual a 8000']
+  genre: {
+    type: String,
+    required: false,
+    default: 'OTROS'
   },
   duration: {
     type: Number,
-    required: [true, 'La duración es obligatoria'],
-    min: [1, 'La duración debe ser mayor a 0 segundos']
-  },
-  genre: {
-    type: [String],
-    default: []
+    default: 180 // duración predeterminada en segundos
   },
   language: {
     type: String,
-    default: 'spanish',
-    enum: ['spanish', 'english', 'portuguese', 'french', 'italian', 'other']
+    default: 'spanish'
   },
   year: {
     type: Number,
-    min: [1900, 'El año debe ser posterior a 1900']
+    default: null
+  },
+  lyrics: {
+    type: String,
+    default: null
   },
   pdfUrl: {
     type: String,
@@ -49,16 +49,31 @@ const SongSchema = new mongoose.Schema({
   indexed: {
     type: Boolean,
     default: false
+  },
+  popularity: {
+    type: Number,
+    default: 0
+  },
+  playCount: {
+    type: Number,
+    default: 0
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
   }
 }, {
   timestamps: true
 });
 
-// Índices compuestos para búsquedas comunes
-SongSchema.index({ title: 'text', artist: 'text' });
-SongSchema.index({ artist: 1, title: 1 });
+// Índice compuesto para búsquedas eficientes
+SongSchema.index({ title: 1, artist: 1 });
+SongSchema.index({ code: 1 }, { unique: true });
 SongSchema.index({ genre: 1 });
-SongSchema.index({ language: 1 });
-SongSchema.index({ code: 1 }); // Índice para búsquedas por código
+SongSchema.index({ popularity: -1 });
 
 module.exports = mongoose.model('Song', SongSchema);
