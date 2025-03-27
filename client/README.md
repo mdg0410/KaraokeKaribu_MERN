@@ -1,54 +1,58 @@
-# React + TypeScript + Vite
+# Karaoke Karibu - Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Este proyecto contiene el frontend para la aplicación Karaoke Karibu, desarrollado con React, TypeScript y Vite.
 
-Currently, two official plugins are available:
+## Tecnologías utilizadas
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- React + TypeScript
+- Vite como bundler
+- Redux Toolkit para manejo de estado
+- React Router para navegación
+- TailwindCSS para estilos
+- Axios para peticiones HTTP
 
-## Expanding the ESLint configuration
+## Estructura del proyecto
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```
+client/
+  ├── public/          # Activos estáticos y archivos públicos
+  ├── src/             # Código fuente
+  │   ├── components/  # Componentes reutilizables
+  │   ├── hooks/       # Hooks personalizados
+  │   ├── pages/       # Componentes de página/ruta
+  │   ├── services/    # Servicios para API y lógica de negocio
+  │   ├── state/       # Estado global con Redux
+  │   ├── utils/       # Utilidades y funciones auxiliares
+  │   ├── App.tsx      # Componente principal
+  │   └── main.tsx     # Punto de entrada
+  ├── index.html       # HTML base
+  ├── tailwind.config.js # Configuración de Tailwind
+  └── vite.config.ts   # Configuración de Vite
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Instalación
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1. Clona el repositorio
+2. Navega a la carpeta `client`
+3. Instala las dependencias:
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+```bash
+npm install
 ```
+
+4. Crea un archivo `.env` basado en `.env.example` y configura las variables de entorno:
+
+```
+VITE_API_URL=http://localhost:5000/api
+```
+
+## Comandos disponibles
+
+- `npm run dev` - Inicia el servidor de desarrollo
+- `npm run build` - Construye la aplicación para producción
+- `npm run preview` - Previsualiza la build de producción localmente
+- `npm run lint` - Ejecuta el linter para encontrar problemas en el código
+
+## Convenciones de código
+
+Este proyecto usa ESLint y Prettier para mantener un estilo de código consistente. Por favor, asegúrate de que tu editor esté configurado para usar estos archivos de configuración.
