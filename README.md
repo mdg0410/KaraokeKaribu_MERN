@@ -1,61 +1,67 @@
-# Karaoke Karibu
+# KaraokeKaribu - Sistema de Gestión para Karaoke
 
-Karaoke Karibu es una aplicación web que permite a los usuarios disfrutar de sesiones de karaoke en línea. Este proyecto está estructurado utilizando el stack MERN (MongoDB, Express, React, Node.js) y está diseñado para ser modular y escalable.
+KaraokeKaribu es una aplicación completa para la gestión de un negocio de karaoke, incluyendo:
+- Gestión de mesas y pedidos
+- Catálogo de canciones con búsqueda avanzada
+- Inventario de productos
+- Sistema de usuarios con diferentes roles
+- Actualizaciones en tiempo real
 
-## Estructura del Proyecto
+## Tecnologías principales
 
-El proyecto está organizado en varias carpetas para separar las diferentes partes de la aplicación:
+- **Backend**: Node.js, Express, MongoDB, Socket.IO
+- **Frontend**: React, Redux, Material-UI
+- **Seguridad**: JWT, HTTPS, validación de datos
+- **Tiempo real**: Socket.IO con adaptador Redis para escalabilidad
 
-- **client/**: Contiene el frontend de la aplicación, construido con React.
-- **server/**: Contiene el backend de la aplicación, construido con Express y MongoDB.
-- **shared/**: Contiene código y configuraciones compartidas entre el frontend y el backend.
-- **infrastructure/**: Contiene archivos relacionados con DevOps, como Dockerfiles y scripts de orquestación.
+## Instalación y configuración
 
-## Instalación
+### Requisitos previos
 
-Para instalar y ejecutar el proyecto, sigue estos pasos:
+- Node.js (v14 o superior)
+- MongoDB (v4 o superior)
+- Redis (opcional, para Socket.IO en cluster y rate limiting)
 
-1. Clona el repositorio:
+### Configuración del backend
+
+1. Clonar el repositorio:
+   ```bash
+   git clone https://github.com/usuario/KaraokeKaribu_MERN.git
+   cd KaraokeKaribu_MERN/server
    ```
-   git clone https://github.com/tu_usuario/karaoke-karibu.git
-   cd karaoke-karibu
-   ```
 
-2. Instala las dependencias del frontend:
-   ```
-   cd client
+2. Instalar dependencias:
+   ```bash
    npm install
    ```
 
-3. Instala las dependencias del backend:
+3. Crear archivo `.env` en la carpeta server con las siguientes variables:
    ```
-   cd ../server
-   npm install
-   ```
-
-4. Configura las variables de entorno:
-   - Crea un archivo `.env` en la carpeta `server/` y define las variables necesarias (por ejemplo, `MONGO_URL`, `REDIS_URL`, etc.).
-
-5. Inicia el servidor backend:
-   ```
-   cd server
-   node src/index.js
+   NODE_ENV=development
+   PORT=5000
+   MONGO_URI=mongodb://localhost:27017/karaokekaribu
+   JWT_SECRET=tu_clave_secreta_aqui
+   JWT_EXPIRE=30d
+   CLIENT_URL=http://localhost:3000
+   USE_HTTPS=false
+   REDIS_URL=redis://localhost:6379    # Opcional
+   ATLAS_SEARCH_ENABLED=false          # Activar para usar MongoDB Atlas Search
    ```
 
-6. Inicia el frontend:
+4. Iniciar el servidor:
+   ```bash
+   npm run dev
    ```
-   cd client
+
+5. Para producción:
+   ```bash
    npm start
    ```
 
-## Uso
+## Documentación de API
 
-Una vez que el servidor y el cliente estén en funcionamiento, puedes acceder a la aplicación a través de tu navegador en `http://localhost:3000`.
+El backend de KaraokeKaribu ofrece una API RESTful para todas las operaciones del sistema.
 
-## Contribuciones
+### Autenticación
 
-Las contribuciones son bienvenidas. Si deseas contribuir a este proyecto, por favor abre un issue o envía un pull request.
-
-## Licencia
-
-Este proyecto está bajo la Licencia MIT. Consulta el archivo LICENSE para más detalles.
+#### Registro de usuario

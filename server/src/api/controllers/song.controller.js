@@ -1,4 +1,5 @@
 const Song = require('../../models/Song');
+const Order = require('../../models/Order'); // Agregar esta importación
 const { validationResult } = require('express-validator');
 const { ApiError } = require('../../middlewares/error.middleware');
 
@@ -48,7 +49,7 @@ exports.createSong = async (req, res, next) => {
       code,
       duration,
       genre: genre || [],
-      language: language || 'español',
+      language: language || 'spanish',
       year,
       pdfUrl,
       audioPreviewUrl,
@@ -291,7 +292,7 @@ exports.deleteSong = async (req, res, next) => {
 };
 
 /**
- * Buscar canciones
+ * Buscar canciones usando Atlas Search
  * @route GET /api/songs/search
  * @access Public
  */
@@ -306,19 +307,60 @@ exports.searchSongs = async (req, res) => {
       });
     }
     
-    // Buscar canciones que coincidan con el título o artista
+    // Si MongoDB Atlas Search está configurado, usar $search
+    if (process.env.ATLAS_SEARCH_ENABLED === 'true') {
+      try {
+        // Consulta simplificada de Atlas Search
+        const songs = await Song.aggregate([
+          {
+            $search: {
+              index: 'Index_Songs',
+              text: {
+                query: q,
+                path: ['title', 'artist', 'genre']
+              }
+            }
+          },
+          { $limit: parseInt(limit) },
+          {
+            $project: {
+              _id: 1,
+              code: 1,
+              title: 1,
+              artist: 1,
+              genre: 1,
+              duration: 1,
+              score: { $meta: "searchScore" }
+            }
+          }
+        ]);
+        
+        return res.json({
+          success: true,
+          data: songs,
+          search_method: 'atlas_search'
+        });
+      } catch (searchError) {
+        console.error('Error en búsqueda con Atlas Search, usando fallback:', searchError);
+        // Si hay error con Atlas Search, usar el fallback
+      }
+    }
+    
+    // Búsqueda clásica como fallback si Atlas Search no está habilitado o falló
     const songs = await Song.find({
       $or: [
         { title: { $regex: q, $options: 'i' } },
-        { artist: { $regex: q, $options: 'i' } }
+        { artist: { $regex: q, $options: 'i' } },
+        { code: isNaN(q) ? null : parseInt(q) }
       ]
     })
     .limit(parseInt(limit))
-    .select('title artist duration');
+    .select('title artist code duration genre');
     
     res.json({
       success: true,
-      data: songs
+      data: songs,
+      search_method: 'regex_fallback'
     });
   } catch (error) {
     console.error('Error en la búsqueda de canciones:', error);
